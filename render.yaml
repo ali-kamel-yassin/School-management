@@ -1,0 +1,16 @@
+version: "1"
+services:
+  - type: web
+    name: sajjaly-pro
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        fromService:
+          type: web
+          name: sajjaly-pro
+          property: port

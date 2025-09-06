@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المدرسة - Sajjaly Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #f5f7fa; color: #333; }
+        header { background: #0066cc; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        header button { background: white; color: #0066cc; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+        section { margin: 1.5rem auto; max-width: 1400px; padding: 0 1rem; }
+        h2 { color: #0066cc; margin-bottom: 1rem; }
+        form { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.25rem; font-weight: bold; color: #0066cc; }
+        .form-group input, .form-group select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-primary { background: #0066cc; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        th, td { padding: 0.75rem; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: #eef2f7; color: #0066cc; font-weight: bold; }
+        
+        /* أنماط جديدة */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 2rem; border-radius: 8px; width: 95%; max-width: 1200px; max-height: 90vh; overflow-y: auto; }
+        .close { float: left; cursor: pointer; font-size: 1.5rem; color: #666; }
+        .tabs { display: flex; margin-bottom: 1rem; border-bottom: 1px solid #ddd; }
+        .tab { padding: 0.5rem 1rem; cursor: pointer; border: 1px solid transparent; }
+        .tab.active { border: 1px solid #ddd; border-bottom: 1px solid white; border-radius: 4px 4px 0 0; background: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .score-input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        .attendance-table { width: 100%; margin-top: 1rem; }
+        .attendance-table th { background: #d4e6f1; }
+        .btn-small { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .code-btn { background: none; border: none; color: #0066cc; cursor: pointer; text-decoration: underline; }
+
+        /* أنماط الحضور اليومي */
+        .daily-attendance-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .status-present { color: #28a745; font-weight: bold; }
+        .status-absent { color: #dc3545; font-weight: bold; }
+        .status-sick { color: #ffc107; font-weight: bold; }
+        .status-vacation { color: #6f42c1; font-weight: bold; }
+        
+        /* Additional styles for better presentation */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 4px;
+            background: #e8e1f7;
+            color: #0066cc;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .form-row .form-group {
+            margin-bottom: 0.5rem;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* أنماط إدارة المواد */
+        .subjects-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .subject-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .subject-name {
+            font-weight: bold;
+            color: #0066cc;
+        }
+        
+        .subject-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        /* أنماط جدول الدرجات */
+        .grades-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .grades-table th,
+        .grades-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .grades-table th {
+            background: #eef2f7;
+            color: #0066cc;
+            font-weight: bold;
+        }
+        
+        .grade-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        /* أنماط المجاميع والمعدلات */
+        .totals-row th,
+        .totals-row td {
+            background: #e8f4f8;
+            font-weight: bold;
+            color: #0066cc;
+        }
+        
+        .average-row th,
+        .average-row td {
+            background: #f0f8ff;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+        
+        .result-pass {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .result-fail {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .result-pending {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        
+        /* أنماط الحضور */
+        .attendance-form {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .attendance-day {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            color: #0066cc;
+        }
+        
+        .subjects-attendance {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .subject-attendance {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .attendance-status {
+            display: flex;
+            gap: 0.25rem;
+        }
+        
+        .status-btn {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .status-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        
+        .status-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .status-btn.active:hover {
+            background: #004499;
+        }
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .attendance-status {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .status-btn {
+            padding: 0.25rem 0.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .status-btn.active {
+            font-weight: bold;
+        }
+        
+        .status-present {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-present.active {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-absent {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-absent.active {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .status-leave {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-leave.active {
+            background: #17a2b8;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-school"></i> <span id="schoolName">لوحة تحكم المدرسة</span></h1>
+        <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+    </header>
+
+    <section id="dashboardSection">
+        
+        <!-- إدارة المواد الدراسية -->
+        <section>
+            <h2><i class="fas fa-book"></i> إدارة المواد الدراسية</h2>
+            <form id="subjectForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>اسم المادة</label>
+                        <input type="text" id="subjectNameInput" placeholder="أدخل اسم المادة" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-plus"></i> إضافة مادة
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <div id="subjectsList" class="subjects-container">
+                <!-- قائمة المواد ستظهر هنا -->
+            </div>
+        </section>
+
+        <section>
+            <h2><i class="fas fa-user-plus"></i> تسجيل طالب جديد</h2>
+            <form id="addStudentForm">
+                <div class="form-row">
+                    <div class="form-group"><label>اسم الطالب الرباعي</label><input type="text" name="full_name" required></div>
+                    <div class="form-group">
+                        <label>المرحلة</label>
+                        <select name="level" required>
+                            <option value="">اختر المرحلة</option>
+                            <option value="ابتدائي">ابتدائي</option>
+                            <option value="متوسطة">متوسطة</option>
+                            <option value="ثانوية">ثانوية</option>
+                            <option value="إعدادية">إعدادية</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>الصف</label><input type="text" name="grade" required></div>
+                    <div class="form-group"><label>الفرع</label><input type="text" name="branch" placeholder="اختياري"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>رقم القاعة</label><input type="text" name="room" required></div>
+                    <div class="form-group"><label>ملاحظات</label><textarea name="notes" rows="2" placeholder="ملاحظات إضافية عن الطالب"></textarea></div>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> حفظ بيانات الطالب
+                </button>
+            </form>
+        </section>
+
+        <section>
+            <h2><i class="fas fa-users"></i> قائمة الطلاب المسجلين</h2>
+            <button onclick="refreshStudentsList()" style="margin-bottom: 1rem; background: #17a2b8; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+                <i class="fas fa-refresh"></i> تحديث القائمة (Debug)
+            </button>
+            <table id="studentsTable">
+                <thead>
+                    <tr>
+                        <th>الاسم</th><th>المرحلة</th><th>الصف</th><th>الفرع</th>
+                        <th>القاعة</th><th>رمز الطالب</th><th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsTableBody"></tbody>
+            </table>
+        </section>
+    </section>
+
+    <!-- نموذج إدارة الدرجات -->
+    <div id="gradesModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('gradesModal')">&times;</span>
+            <h2><i class="fas fa-chart-line"></i> إدارة درجات الطالب: <span id="gradesStudentName"></span></h2>
+            
+            <div class="grades-container">
+                <table class="grades-table">
+                    <thead>
+                        <tr>
+                            <th>المادة</th>
+                            <th>شهر أول</th>
+                            <th>شهر ثاني</th>
+                            <th>نصف السنة</th>
+                            <th>شهر ثالث</th>
+                            <th>شهر رابع</th>
+                            <th>النهائي</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gradesTableBody"></tbody>
+                    <tfoot>
+                        <tr class="totals-row">
+                            <th>المجموع</th>
+                            <td id="month1Total">0</td>
+                            <td id="month2Total">0</td>
+                            <td id="midtermTotal">0</td>
+                            <td id="month3Total">0</td>
+                            <td id="month4Total">0</td>
+                            <td id="finalTotal">0</td>
+                            <td>-</td>
+                        </tr>
+                        <tr class="average-row">
+                            <th>المعدل</th>
+                            <td id="month1Average">0</td>
+                            <td id="month2Average">0</td>
+                            <td id="midtermAverage">0</td>
+                            <td id="month3Average">0</td>
+                            <td id="month4Average">0</td>
+                            <td id="finalAverage">0</td>
+                            <td id="overallAverage">0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <button class="btn-primary" style="margin-top: 1rem;" onclick="saveGrades()">
+                <i class="fas fa-save"></i> حفظ الدرجات
+            </button>
+        </div>
+    </div>
+
+    <!-- نموذج الحضور اليومي -->
+    <div id="attendanceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('attendanceModal')">&times;</span>
+            <h2><i class="fas fa-calendar-check"></i> حضور الطالب: <span id="attendanceStudentName"></span></h2>
+            
+            <!-- إضافة حضور جديد -->
+            <div class="attendance-form">
+                <h3>إضافة حضور يوم جديد</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>التاريخ</label>
+                        <input type="date" id="attendanceDate">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-primary" onclick="addDailyAttendance()">
+                            <i class="fas fa-plus"></i> إضافة يوم
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- جدول الحضور -->
+            <div class="attendance-container">
+                <div id="attendanceTableContainer"></div>
+            </div>
+            
+            <button class="btn-primary" style="margin-top: 1rem;" onclick="saveAttendance()">
+                <i class="fas fa-save"></i> حفظ الحضور
+            </button>
+        </div>
+    </div>
+
+    <!-- نموذج إدارة المواد والدرجات -->
+    <div id="subjectsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('subjectsModal')">&times;</span>
+            <h2><i class="fas fa-book"></i> إدارة المواد والدرجات للطالب: <span id="modalStudentName"></span></h2>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('scores-tab')">الدرجات</div>
+                <div class="tab" onclick="switchTab('daily-attendance-tab')">الحضور اليومي</div>
+            </div>
+            
+            <!-- قسم الدرجات -->
+            <div id="scores-tab" class="tab-content active">
+                <h3>الدرجات الفصلية</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>اسم المادة</label>
+                        <input type="text" id="subjectName">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-primary" onclick="addSubject()"><i class="fas fa-plus"></i> إضافة مادة</button>
+                    </div>
+                </div>
+                
+                <table class="scores-table">
+                    <thead>
+                        <tr>
+                            <th>المادة</th>
+                            <th>شهر الأول</th>
+                            <th>شهر الثاني</th>
+                            <th>نصف السنة</th>
+                            <th>شهر الثالث</th>
+                            <th>شهر الرابع</th>
+                            <th>نهاية السنة</th>
+                            <th>المجموع</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scoresTableBody"></tbody>
+                </table>
+            </div>
+            
+            <!-- قسم الحضور اليومي -->
+            <div id="daily-attendance-tab" class="tab-content">
+                <h3>سجل الحضور اليومي</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>التاريخ</label>
+                        <input type="date" id="attendanceDate" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>الحالة</label>
+                        <select id="attendanceStatus">
+                            <option value="حاضر">حاضر</option>
+                            <option value="غائب">غائب</option>
+                            <option value="مريض">مريض</option>
+                            <option value="إجازة">إجازة</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>ملاحظات</label>
+                        <input type="text" id="attendanceNotes" placeholder="ملاحظات حول الحضور">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-primary" onclick="addDailyAttendance()"><i class="fas fa-plus"></i> إضافة سجل</button>
+                    </div>
+                </div>
+                
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>الحالة</th>
+                            <th>ملاحظات</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyAttendanceTableBody"></tbody>
+                </table>
+            </div>
+            
+            <button class="btn-primary" style="margin-top: 1rem;" onclick="saveStudentData()"><i class="fas fa-save"></i> حفظ التغييرات</button>
+        </div>
+    </div>
+
+    <script src="assets/js/school.js"></script>
+</body>
+</html>

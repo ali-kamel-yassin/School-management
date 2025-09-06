@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الطالب - Sajjaly Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #f5f7fa; color: #333; }
+        header { background: #17a2b8; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        header button { background: white; color: #17a2b8; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+        section { margin: 1.5rem auto; max-width: 1400px; padding: 0 1rem; }
+        h2 { color: #17a2b8; margin-bottom: 1rem; }
+        form { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; }
+        .form-group label { display: block; margin-bottom: 0.25rem; font-weight: bold; color: #17a2b8; }
+        .form-group input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-primary { background: #17a2b8; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; width: 100%; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        th, td { padding: 0.75rem; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: #e0f4f7; color: #17a2b8; font-weight: bold; }
+        .status-present { color: #28a745; font-weight: bold; }
+        .status-absent { color: #dc3545; font-weight: bold; }
+        .status-sick { color: #ff9800; font-weight: bold; }
+        .status-vacation { color: #9c27b0; font-weight: bold; }
+        .grade-excellent { color: #28a745; } 
+        .grade-good { color: #17a2b8; } 
+        .grade-pass { color: #28a745; } 
+        .grade-fail { color: #dc3545; }
+        .grade-pending { color: #6c757d; }
+        .status-vacation { color: #9c27b0; font-weight: bold; }
+        
+        /* أنماط جديدة */
+        .student-info { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .info-item { padding: 0.5rem; }
+        .info-label { font-weight: bold; color: #17a2b8; }
+        .tabs { display: flex; margin-bottom: 1rem; border-bottom: 1px solid #ddd; }
+        .tab { padding: 0.5rem 1rem; cursor: pointer; border: 1px solid transparent; }
+        .tab.active { border: 1px solid #ddd; border-bottom: 1px solid white; border-radius: 4px 4px 0 0; background: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-user-graduate"></i> مرحباً <span id="studentName">طالبنا العزيز</span></h1>
+        <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+    </header>
+
+    <section id="loginSection">
+        <h2><i class="fas fa-key"></i> تسجيل دخول الطالب</h2>
+        <form id="studentLoginForm">
+            <div class="form-group">
+                <label for="studentCode">رمز الطالب</label>
+                <input type="text" id="studentCode" placeholder="أدخل رمز الطالب" required>
+            </div>
+            <button type="submit" class="btn-primary">دخول</button>
+        </form>
+    </section>
+
+    <main id="portalSection" style="display:none">
+        <div class="student-info">
+            <h2><i class="fas fa-user"></i> المعلومات الشخصية</h2>
+            <div class="info-grid" id="studentInfo">
+                <!-- سيتم ملؤها بالبيانات -->
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('detailed-scores')">الدرجات التفصيلية</div>
+            <div class="tab" onclick="switchTab('attendance')">سجل الحضور</div>
+        </div>
+
+        <!-- قسم الدرجات التفصيلية -->
+        <div id="detailed-scores" class="tab-content active">
+            <section>
+                <h2><i class="fas fa-chart-bar"></i> الدرجات التفصيلية</h2>
+                <table id="detailedScoresTable">
+                    <thead>
+                        <tr>
+                            <th>المادة</th>
+                            <th>شهر الأول</th>
+                            <th>شهر الثاني</th>
+                            <th>نصف السنة</th>
+                            <th>شهر الثالث</th>
+                            <th>شهر الرابع</th>
+                            <th>نهاية السنة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailedScoresTableBody"></tbody>
+                </table>
+            </section>
+        </div>
+
+        <!-- قسم الحضور -->
+        <div id="attendance" class="tab-content">
+            <section>
+                <h2><i class="fas fa-calendar-check"></i> سجل الحضور اليومي</h2>
+                <table id="attendanceTable">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>الحالة العامة</th>
+                            <th>تفاصيل الحضور</th>
+                            <th>التاريخ المسجل</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTableBody"></tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        let currentStudent = null;
+
+        document.getElementById('studentLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const code = document.getElementById('studentCode').value;
+            const res = await fetch('/api/student/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            const data = await res.json();
+            if (data.error) alert(data.error);
+            else {
+                currentStudent = data.student;
+                localStorage.setItem('student', JSON.stringify(currentStudent));
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('portalSection').style.display = 'block';
+                document.getElementById('studentName').textContent = currentStudent.full_name;
+                displayStudentData();
+            }
+        });
+
+        // التبديل بين علامات التبويب
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`.tab:nth-child(${tabId === 'detailed-scores' ? 1 : 2})`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function displayStudentData() {
+            // عرض المعلومات الشخصية
+            document.getElementById('studentInfo').innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">الاسم الكامل:</div>
+                    <div>${currentStudent.full_name}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">الصف:</div>
+                    <div>${currentStudent.grade}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">الفرع:</div>
+                    <div>${currentStudent.branch || 'لا يوجد'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">رقم القاعة:</div>
+                    <div>${currentStudent.room}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">رمز الطالب:</div>
+                    <div>${currentStudent.student_code}</div>
+                </div>
+            `;
+            
+            // عرض الدرجات التفصيلية
+            const detailedScores = JSON.parse(currentStudent.detailed_scores || '{}');
+            const tbody = document.getElementById('detailedScoresTableBody');
+            tbody.innerHTML = '';
+            
+            Object.entries(detailedScores).forEach(([subject, scores]) => {
+                const month1 = parseFloat(scores.month1) || 0;
+                const month2 = parseFloat(scores.month2) || 0;
+                const midterm = parseFloat(scores.midterm) || 0;
+                const month3 = parseFloat(scores.month3) || 0;
+                const month4 = parseFloat(scores.month4) || 0;
+                const final = parseFloat(scores.final) || 0;
+                
+                // Get the latest grade entered (from final to month1)
+                const periods = ['final', 'month4', 'month3', 'midterm', 'month2', 'month1'];
+                let latestGrade = 0;
+                
+                for (let period of periods) {
+                    const grade = parseFloat(scores[period]) || 0;
+                    if (grade > 0) {
+                        latestGrade = grade;
+                        break;
+                    }
+                }
+                
+                let gradeClass = 'grade-fail';
+                let gradeText = 'راسب';
+                
+                if (latestGrade === 0) {
+                    gradeClass = 'grade-pending';
+                    gradeText = 'معلق';
+                } else if (latestGrade >= 50) {
+                    gradeClass = 'grade-pass';
+                    gradeText = 'ناجح';
+                } else {
+                    gradeClass = 'grade-fail';
+                    gradeText = 'راسب';
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${subject}</td>
+                    <td>${month1}</td>
+                    <td>${month2}</td>
+                    <td>${midterm}</td>
+                    <td>${month3}</td>
+                    <td>${month4}</td>
+                    <td>${final}</td>
+                    <td><span class="${gradeClass}">${gradeText}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            if (Object.keys(detailedScores).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8">لا توجد درجات مسجلة</td></tr>';
+            }
+            
+            // عرض سجل الحضور اليومي
+            const dailyAttendance = JSON.parse(currentStudent.daily_attendance || '{}');
+            const attendanceTbody = document.getElementById('attendanceTableBody');
+            attendanceTbody.innerHTML = '';
+            
+            const dates = Object.keys(dailyAttendance).sort().reverse();
+            
+            dates.forEach(date => {
+                const attendanceRecord = dailyAttendance[date];
+                if (!attendanceRecord) return;
+                
+                // Count present and absent subjects for this date
+                const subjects = Object.keys(attendanceRecord);
+                const presentCount = subjects.filter(subject => attendanceRecord[subject] === 'حاضر').length;
+                const absentCount = subjects.filter(subject => attendanceRecord[subject] === 'غائب').length;
+                const leaveCount = subjects.filter(subject => attendanceRecord[subject] === 'إجازة').length;
+                
+                let overallStatus = 'حاضر';
+                let statusClass = 'status-present';
+                
+                if (absentCount > presentCount) {
+                    overallStatus = 'غائب';
+                    statusClass = 'status-absent';
+                } else if (leaveCount > 0) {
+                    overallStatus = 'إجازة';
+                    statusClass = 'status-vacation';
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${date}</td>
+                    <td><span class="${statusClass}">${overallStatus}</span></td>
+                    <td>${presentCount} حاضر، ${absentCount} غائب، ${leaveCount} إجازة</td>
+                    <td>${date}</td>
+                `;
+                attendanceTbody.appendChild(row);
+            });
+            
+            if (dates.length === 0) {
+                attendanceTbody.innerHTML = '<tr><td colspan="4">لا يوجد سجل حضور</td></tr>';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('student');
+            window.location.reload();
+        }
+
+        if (localStorage.getItem('student')) {
+            const student = JSON.parse(localStorage.getItem('student'));
+            currentStudent = student;
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('portalSection').style.display = 'block';
+            document.getElementById('studentName').textContent = student.full_name;
+            displayStudentData();
+        }
+    </script>
+</body>
+</html>
