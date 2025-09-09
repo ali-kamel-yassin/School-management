@@ -4,8 +4,11 @@ services:
     name: sajjaly-pro
     env: node
     plan: free
-    buildCommand: npm install
+    region: frankfurt  # or oregon for better performance
+    buildCommand: npm ci --only=production && npm run build
     startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
@@ -15,6 +18,17 @@ services:
           name: sajjaly-pro
           property: port
       - key: DATABASE_URL
-        sync: false  # This will be set manually in Render dashboard
+        sync: false  # Set manually in Render dashboard
       - key: JWT_SECRET
-        sync: false  # This will be set manually in Render dashboard
+        sync: false  # Set manually in Render dashboard
+      - key: RENDER
+        value: "true"
+      - key: TZ
+        value: "Asia/Baghdad"
+    disk:
+      name: sajjaly-data
+      mountPath: /app/data
+      sizeGB: 1
+    scaling:
+      minInstances: 1
+      maxInstances: 1

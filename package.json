@@ -1,7 +1,7 @@
 {
   "name": "sajjaly-pro",
-  "version": "2.0.0",
-  "description": "Professional School Management System - نظام إدارة المدارس المتكامل",
+  "version": "2.1.0",
+  "description": "Professional School Management System - نظام إدارة المدارس المتكامل (Production-Ready)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -9,19 +9,21 @@
     "init-db": "node -e \"require('./database')\"",
     "setup": "npm install && npm run init-db",
     "build": "npm run init-db",
-    "postinstall": "npm run init-db"
+    "postinstall": "npm run init-db",
+    "test": "node -e \"console.log('Testing server startup...'); require('./server.js')\"",
+    "deploy": "npm install --production && npm run build",
+    "health": "curl -f http://localhost:$PORT/health || curl -f http://localhost:1111/health"
   },
   "keywords": [
-    "school",
-    "management",
-    "education",
-    "students",
-    "arabic",
-    "grades",
-    "attendance"
+    "school", "management", "education", "students", "arabic", "grades", 
+    "attendance", "hosting", "render", "railway", "vercel", "production"
   ],
   "author": "Sajjaly Pro Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/sajjaly-pro.git"
+  },
   "dependencies": {
     "express": "^4.19.2",
     "sqlite3": "^5.1.6",
@@ -36,6 +38,11 @@
     "nodemon": "^3.0.2"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "homepage": "https://sajjaly-pro.onrender.com",
+  "bugs": {
+    "url": "https://github.com/your-username/sajjaly-pro/issues"
   }
 }
