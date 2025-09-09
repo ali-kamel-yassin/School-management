@@ -1,15 +1,14 @@
+// server.js
 require('dotenv').config();
-const express       = require('express');
-const path          = require('path');
-const cors          = require('cors');
-const bcrypt        = require('bcryptjs');
-const jwt           = require('jsonwebtoken');
-const multer        = require('multer');
-const fs            = require('fs');
-const { getDB, generateUniqueSchoolCode } = require('./database');
+import express from 'express';
+import path from 'path';
+import cors from 'cors';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { getDB, generateUniqueSchoolCode } from './database';
 
 const app  = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 1111;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key_change_in_production';
 
 // 1) أساسيات Express
@@ -19,40 +18,62 @@ app.use(cors({
         : ['http://localhost:3000'],
     credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(json());
+app.use(urlencoded({ extended: true }));
 
-// 2) القرص الدائم لرفع الملفات (اختياري)
-const uploadsDir = '/app/data/uploads';
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-app.use('/uploads', express.static(uploadsDir));
+// 2) القرص الدائم لرفع الملفات (اختياري) - معالجة مشكلة الاستضافة
+const uploadsDir = process.env.NODE_ENV === 'production' 
+  ? '/tmp/uploads'  // استخدام مجلد tmp في الإنتاج
+  : join(__dirname, 'uploads');  // مجلد محلي للتطوير
+
+// إنشاء مجلد الرفع بأمان
+try {
+  if (!existsSync(uploadsDir)) {
+    mkdirSync(uploadsDir, { recursive: true });
+  }
+  app.use('/uploads', static(uploadsDir));
+} catch (err) {
+  console.log('⚠️ Uploads directory not available - file upload disabled');
+  // في حالة فشل إنشاء المجلد، لا نتوقف
+}
 
 // 3) خدمة الملفات الثابتة (HTML, CSS, JS ...)
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(static(join(__dirname, 'public')));
 
 // 4) مصادقة JWT
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Access token required' });
-    jwt.verify(token, JWT_SECRET, (err, user) => {
+    verify(token, JWT_SECRET, (err, user) => {
         if (err) return res.status(403).json({ error: 'Invalid or expired token' });
         req.user = user;
         next();
     });
 }
 
-// 5) رفع الملفات (مثال جاهز)
-const storage = multer.diskStorage({
+// 5) رفع الملفات (مثال جاهز) - مع معالجة قيود الاستضافة
+let upload;
+try {
+  const storage = diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
-});
-const upload = multer({ storage });
+  });
+  upload = multer({ storage });
+} catch (err) {
+  // إذا فشل إعداد التخزين، نستخدم الذاكرة
+  upload = multer({ dest: '/tmp/' });
+}
 
 app.post('/api/upload', upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'لم يُرفع ملف' });
-    const url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-    res.json({ message: 'تم الرفع', url });
+  if (!req.file) return res.status(400).json({ error: 'لم يُرفع ملف' });
+  
+  // في بيئة الإنتاج، قد لا يكون رفع الملفات متاحاً بشكل دائم
+  const url = process.env.NODE_ENV === 'production' 
+    ? 'تم رفع الملف مؤقتاً - يُنصح باستخدام خدمة تخزين سحابية'
+    : `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    
+  res.json({ message: 'تم الرفع', url });
 });
 
 // 6) الـ Routes الخاصة بالمدارس والطلاب
@@ -64,9 +85,9 @@ app.post('/api/admin/login', (req, res) => {
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
     db.get('SELECT * FROM users WHERE username = ? AND role = ?', [username, 'admin'], (err, user) => {
         if (err) return res.status(500).json({ error: 'Database error' });
-        if (!user || !bcrypt.compareSync(password, user.password_hash))
+        if (!user || !compareSync(password, user.password_hash))
             return res.status(401).json({ error: 'Invalid credentials' });
-        const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
+        const token = sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
         res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
     });
 });
@@ -77,7 +98,7 @@ app.post('/api/school/login', (req, res) => {
     db.get('SELECT * FROM schools WHERE code = ?', [code], (err, school) => {
         if (err) return res.status(500).json({ error: 'Database error' });
         if (!school) return res.status(404).json({ error: 'School not found' });
-        const token = jwt.sign({ id: school.id, code: school.code, name: school.name, role: 'school' }, JWT_SECRET, { expiresIn: '1d' });
+        const token = sign({ id: school.id, code: school.code, name: school.name, role: 'school' }, JWT_SECRET, { expiresIn: '1d' });
         res.json({ token, school });
     });
 });
@@ -88,7 +109,7 @@ app.post('/api/student/login', (req, res) => {
     db.get(`SELECT s.*, sch.name as school_name FROM students s JOIN schools sch ON s.school_id = sch.id WHERE s.student_code = ?`, [code], (err, student) => {
         if (err) return res.status(500).json({ error: 'Database error' });
         if (!student) return res.status(404).json({ error: 'Student not found' });
-        const token = jwt.sign({ id: student.id, code: student.student_code, name: student.
+        const token = sign({ id: student.id, code: student.student_code, name: student.
             full_name, role: 'student' }, JWT_SECRET, { expiresIn: '1d' });
         res.json({ token, student });
     });
@@ -184,7 +205,7 @@ app.delete('/api/student/:id', (req, res) => {
 
 // 7) صفحة React/SPA أو 404
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(join(__dirname, 'public', 'index.html'));
 });
 
 // 8) تشغيل السيرفر
